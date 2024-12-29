@@ -85,9 +85,9 @@ export const registerMultipleUsers = async (req, res) => {
 
     const existingEmails = await User.find({ email: { $in: users.map(u => u.email) } });
     if (existingEmails.length > 0) {
-      return res.status(400).json({ 
-        message: "Some users already exist", 
-        existingEmails: existingEmails.map(u => u.email) 
+      return res.status(400).json({
+        message: "Some users already exist",
+        existingEmails: existingEmails.map(u => u.email)
       });
     }
 
