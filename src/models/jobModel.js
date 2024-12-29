@@ -41,11 +41,6 @@ const JobSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
-    companyName: {
-        type: String,
-        required: true,
-        trim: true
-    },
     applicants: [{
         studentId: {
             type: mongoose.Schema.Types.ObjectId,

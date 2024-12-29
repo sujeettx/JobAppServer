@@ -14,7 +14,7 @@ const router = express.Router();
 // Public routes (if any)
 
 // Routes accessible by both companies and students
-router.get('/', authenticate, getAllJobs);
+router.get('/', authenticate, getAllJobs); // checked
 
 // Company-only routes
 router.post('/', authenticate, authorize(['company']), createJob);
@@ -23,7 +23,7 @@ router.put('/:id', authenticate, authorize(['company']), updateJob);
 router.delete('/:id', authenticate, authorize(['company']), deleteJob);
 
 // Student-only routes
-router.post('/:id/apply', authenticate, authorize(['student']), applyForJob);
+router.post('/:id/apply', authenticate, authorize(['student']), applyForJob); // checked
 
 // Error handler for invalid routes
 router.use('*', (req, res) => {

@@ -22,7 +22,6 @@ export const createJob = async (req, res) => {
             salary,
             deadlineDate,
             companyId: req.user.userId,
-            companyName: req.user.companyName || 'Unknown Company',
         });
 
         await job.save();
@@ -45,12 +44,17 @@ export const getAllJobs = async (req, res) => {
         // Only show jobs with future deadlines
         query.deadlineDate = { $gt: new Date() };
 
-        const jobs = await Job.find(query).sort({ createdAt: -1 });
+        // Fetch jobs and populate companyName
+        const jobs = await Job.find(query)
+            .populate('companyId', 'profile.companyName') // Populate companyName from User model
+            .sort({ createdAt: -1 });
+
         res.status(200).json(jobs);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching jobs', error: error.message });
     }
 };
+
 
 // Get jobs posted by the logged-in company
 export const getMyJobs = async (req, res) => {
