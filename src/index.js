@@ -19,8 +19,8 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use('/user', authRoute);
-app.use('/job', jobRoute);
+app.use('/users', authRoute);
+app.use('/jobs', jobRoute);
 app.get('/',(req,res)=>{
     res.send("Welcome to Job Application API")
 })

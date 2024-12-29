@@ -2,9 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/userModel.js";
 import dotenv from 'dotenv';
 dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET
-console.log(JWT_SECRET);
-
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export const register = async (req, res) => {
   try {
@@ -42,7 +40,7 @@ export const login = async (req, res) => {
       expiresIn: "500h",
     });
 
-    res.status(200).json({ token, role: user.role ,userId: user._id});
+    res.status(200).json({ token, role: user.role, userId: user._id });
   } catch (error) {
     res.status(500).json({ message: "Error logging in", error });
   }
@@ -59,7 +57,8 @@ export const getUser = async (req, res) => {
     res.status(500).json({ message: "Error getting user", error });
   }
 };
-// get user by id
+
+// Get user by ID
 export const getUserById = async (req, res) => {
   try {
     const { id } = req.params; // Extract user ID from URL parameters
@@ -73,5 +72,28 @@ export const getUserById = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: "Error getting user", error });
+  }
+};
+
+// Register multiple users
+export const registerMultipleUsers = async (req, res) => {
+  try {
+    const users = req.body; // Expecting an array of user objects
+    if (!Array.isArray(users) || users.length === 0) {
+      return res.status(400).json({ message: "Invalid input, expected an array of users" });
+    }
+
+    const existingEmails = await User.find({ email: { $in: users.map(u => u.email) } });
+    if (existingEmails.length > 0) {
+      return res.status(400).json({ 
+        message: "Some users already exist", 
+        existingEmails: existingEmails.map(u => u.email) 
+      });
+    }
+
+    const createdUsers = await User.insertMany(users);
+    res.status(201).json({ message: "Users registered successfully", createdUsers });
+  } catch (error) {
+    res.status(500).json({ message: "Error registering multiple users", error });
   }
 };
