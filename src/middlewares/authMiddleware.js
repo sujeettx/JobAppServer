@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
+console.log(JWT_SECRET);
 
 
 if (!JWT_SECRET) {
@@ -18,10 +19,8 @@ export const authenticate = (req, res, next) => {
         }
 
         try {
-            console.log(token);
-            console.log(JWT_SECRET);
+          
             const decoded = jwt.verify(token, JWT_SECRET);
-
             req.user = decoded;
             next();
         } catch (error) {
