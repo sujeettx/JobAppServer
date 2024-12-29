@@ -16,13 +16,13 @@ const router = express.Router();
 // now all routes are aunthicated routes
 router.use(authenticate);
 // Student routes
-router.get('/',authorize(['student']),getAllJobs); 
-router.get('/:id',authorize(['student']),getJobById ); // get job by id
+router.get('/',authorize(['student']),getAllJobs);                              // tested
+router.get('/:id',authorize(['student']),getJobById ); // get job by id         // tested
 router.post('/:id/apply', authorize(['student']), applyForJob);
 
 // Company routes
-router.post('/', authorize(['company']), createJob);
-router.get('/my', authorize(['company']), getMyJobs);
+router.post('/', authorize(['company']), createJob);                             // tested
+router.get('/my/:id',getMyJobs);                                                 // tested         
 router.get('/applicants', authorize(['company']), getApplicants);
 router.put('/:id', authorize(['company']), updateJob);
 router.delete('/:id', authorize(['company']), deleteJob);

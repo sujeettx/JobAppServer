@@ -66,7 +66,7 @@ export const getJobById = async (req, res) => {
 // Get company's posted jobs
 export const getMyJobs = async (req, res) => {
     try {
-        const jobs = await Job.find({ companyId: req.user.userId })
+        const jobs = await Job.find({companyId: req.params.id})
             .sort({ createdAt: -1 });
         res.status(200).json(jobs);
     } catch (error) {
