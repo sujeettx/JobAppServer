@@ -4,26 +4,28 @@ import {
     createJob,
     getAllJobs,
     getMyJobs,
+    getApplicants,
     applyForJob,
-    deleteJob,
     updateJob,
+    deleteJob,
+    getJobById
 } from '../controllers/jobController.js';
 
 const router = express.Router();
 
-// Public routes (if any)
+// now all routes are aunthicated routes
+router.use(authenticate);
+// Student routes
+router.get('/',authorize(['student']),getAllJobs); 
+router.get('/:id',authorize(['student']),getJobById ); // get job by id
+router.post('/:id/apply', authorize(['student']), applyForJob);
 
-// Routes accessible by both companies and students
-router.get('/', authenticate, getAllJobs); // checked
-
-// Company-only routes
-router.post('/', authenticate, authorize(['company']), createJob);
-router.get('/my-jobs', authenticate, authorize(['company']), getMyJobs);
-router.put('/:id', authenticate, authorize(['company']), updateJob);
-router.delete('/:id', authenticate, authorize(['company']), deleteJob);
-
-// Student-only routes
-router.post('/:id/apply', authenticate, authorize(['student']), applyForJob); // checked
+// Company routes
+router.post('/', authorize(['company']), createJob);
+router.get('/my', authorize(['company']), getMyJobs);
+router.get('/applicants', authorize(['company']), getApplicants);
+router.put('/:id', authorize(['company']), updateJob);
+router.delete('/:id', authorize(['company']), deleteJob);
 
 // Error handler for invalid routes
 router.use('*', (req, res) => {

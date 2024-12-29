@@ -1,17 +1,12 @@
 import Job from '../models/jobModel.js';
 
-// Create a new job posting
+// Create new job
 export const createJob = async (req, res) => {
     try {
         const { title, description, experienceLevel, location, salary, deadlineDate } = req.body;
 
-        // Validate required fields
         if (!title || !description || !experienceLevel || !location || !salary || !deadlineDate) {
             return res.status(400).json({ message: 'All fields are required' });
-        }
-
-        if (req.user.role !== 'company') {
-            return res.status(403).json({ message: 'Only companies can post jobs' });
         }
 
         const job = new Job({
@@ -25,143 +20,149 @@ export const createJob = async (req, res) => {
         });
 
         await job.save();
-        res.status(201).json({ message: 'Job posted successfully', job });
+        res.status(201).json(job);
     } catch (error) {
-        res.status(500).json({ message: 'Error creating job', error: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Get all jobs with optional filters
+// Get all jobs with filters (for students)
 export const getAllJobs = async (req, res) => {
     try {
         const { experienceLevel, location } = req.query;
         let query = {};
 
-        // Add filters if provided
         if (experienceLevel) query.experienceLevel = experienceLevel;
         if (location) query.location = location;
-
-        // Only show jobs with future deadlines
         query.deadlineDate = { $gt: new Date() };
 
-        // Fetch jobs and populate companyName
         const jobs = await Job.find(query)
-            .populate('companyId', 'profile.companyName') // Populate companyName from User model
+            .populate('companyId', 'profile.companyName')
+            .select('-applicants')
             .sort({ createdAt: -1 });
 
         res.status(200).json(jobs);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching jobs', error: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
+// Get job by ID (for students)
+export const getJobById = async (req, res) => {
+    try {
+        const job = await Job.findById(req.params.id)
+            .populate('companyId', 'profile.companyName')
+            .select('-applicants');
 
-// Get jobs posted by the logged-in company
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        res.status(200).json(job);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+// Get company's posted jobs
 export const getMyJobs = async (req, res) => {
     try {
-        if (req.user.role !== 'company') {
-            return res.status(403).json({ message: 'Only companies can view their jobs' });
-        }
-
-        const jobs = await Job.find({ 
-            companyId: req.user.userId 
-        }).sort({ createdAt: -1 });
-
+        const jobs = await Job.find({ companyId: req.user.userId })
+            .sort({ createdAt: -1 });
         res.status(200).json(jobs);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching jobs', error: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Apply for a job
+// Get applicants for company's jobs
+export const getApplicants = async (req, res) => {
+    try {
+        const jobs = await Job.find({ companyId: req.user.userId })
+            .populate('applicants.studentId', 'profile.name profile.email profile.education profile.skills')
+            .select('title applicants');
+
+        const applicants = jobs.map(job => ({
+            jobTitle: job.title,
+            applicants: job.applicants.map(a => ({
+                student: a.studentId,
+                appliedAt: a.appliedAt,
+                status: a.status
+            }))
+        }));
+
+        res.status(200).json(applicants);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Apply for job (students)
 export const applyForJob = async (req, res) => {
     try {
-        if (req.user.role !== 'student') {
-            return res.status(403).json({ message: 'Only students can apply for jobs' });
-        }
-
         const job = await Job.findById(req.params.id);
+        
         if (!job) {
             return res.status(404).json({ message: 'Job not found' });
         }
 
-        // Check if job deadline has passed
         if (new Date(job.deadlineDate) < new Date()) {
-            return res.status(400).json({ message: 'Application deadline has passed' });
+            return res.status(400).json({ message: 'Deadline passed' });
         }
 
-        // Check if already applied
         const alreadyApplied = job.applicants.some(
-            (applicant) => applicant.studentId.toString() === req.user.userId
+            applicant => applicant.studentId.toString() === req.user.userId
         );
+
         if (alreadyApplied) {
-            return res.status(400).json({ message: 'You have already applied for this job' });
+            return res.status(400).json({ message: 'Already applied' });
         }
 
-        // Add applicant
-        job.applicants.push({ 
+        job.applicants.push({
             studentId: req.user.userId,
-            appliedAt: new Date()
+            appliedAt: new Date(),
+            status: 'pending'
         });
+
         await job.save();
-
-        res.status(200).json({ message: 'Application submitted successfully' });
+        res.status(200).json({ message: 'Applied successfully' });
     } catch (error) {
-        res.status(500).json({ message: 'Error applying for job', error: error.message });
+        res.status(500).json({ error: error.message });
     }
 };
 
-// Delete a job (only by the company who posted it)
-export const deleteJob = async (req, res) => {
-    try {
-        const job = await Job.findById(req.params.id);
-
-        if (!job) {
-            return res.status(404).json({ message: 'Job not found' });
-        }
-
-        if (job.companyId.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'You can only delete your own jobs' });
-        }
-
-        await job.deleteOne();
-        res.status(200).json({ message: 'Job deleted successfully' });
-    } catch (error) {
-        res.status(500).json({ message: 'Error deleting job', error: error.message });
-    }
-};
-
-// Update a job (only by the company who posted it)
+// Update job
 export const updateJob = async (req, res) => {
     try {
-        const { title, description, experienceLevel, location, salary, deadlineDate } = req.body;
-
-        const job = await Job.findById(req.params.id);
+        const job = await Job.findOneAndUpdate(
+            { _id: req.params.id, companyId: req.user.userId },
+            { $set: req.body },
+            { new: true }
+        );
 
         if (!job) {
             return res.status(404).json({ message: 'Job not found' });
         }
 
-        if (job.companyId.toString() !== req.user.userId) {
-            return res.status(403).json({ message: 'You can only update your own jobs' });
-        }
-
-        // Validate deadline date if provided
-        if (deadlineDate && new Date(deadlineDate) < new Date()) {
-            return res.status(400).json({ message: 'Deadline date must be in the future' });
-        }
-
-        // Update job fields
-        if (title) job.title = title;
-        if (description) job.description = description;
-        if (experienceLevel) job.experienceLevel = experienceLevel;
-        if (location) job.location = location;
-        if (salary) job.salary = salary;
-        if (deadlineDate) job.deadlineDate = deadlineDate;
-
-        await job.save();
-        res.status(200).json({ message: 'Job updated successfully', job });
+        res.status(200).json(job);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating job', error: error.message });
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Delete job
+export const deleteJob = async (req, res) => {
+    try {
+        const job = await Job.findOneAndDelete({ 
+            _id: req.params.id, 
+            companyId: req.user.userId 
+        });
+
+        if (!job) {
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        res.status(200).json({ message: 'Job deleted' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };
