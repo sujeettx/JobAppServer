@@ -8,7 +8,8 @@ import {
     applyForJob,
     updateJob,
     deleteJob,
-    getJobById
+    getJobById,
+    createMultipleJobs
 } from '../controllers/jobController.js';
 
 const router = express.Router();
@@ -22,6 +23,8 @@ router.post('/:id/apply', authorize(['student']), applyForJob);                 
 
 // Company routes
 router.post('/', authorize(['company']), createJob);                             // tested
+// Multiple job creation
+router.post('/multiple', authorize(['company']), createMultipleJobs);            // tested
 router.get('/my/:id',getMyJobs);                                                 // tested    later on for again testing      
 router.get('/applicants', authorize(['company']), getApplicants);                // later test
 router.put('/:id', authorize(['company']), updateJob);                           // tested

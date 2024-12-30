@@ -11,10 +11,24 @@ const JobSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    requirements: {
+        type: [String],
+        required: true
+    },
     experienceLevel: {
         type: String,
         required: true,
         enum: ['Entry Level', 'Mid Level', 'Senior Level', 'Expert Level']
+    },
+    employmentType: {
+        type: String,
+        required: true,
+        enum: ['Full-time', 'Part-time', 'Contract', 'Internship', 'Remote']
+    },
+    openings: {
+        type: Number,
+        required: true,
+        min: 1
     },
     location: {
         type: String,
@@ -41,6 +55,14 @@ const JobSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    jobHighlights: {
+        type: [String],
+        default: []
+    },
+    keySkills: {
+        type: [String],
+        required: true
+    },
     applicants: [{
         studentId: {
             type: mongoose.Schema.Types.ObjectId,
@@ -49,9 +71,30 @@ const JobSchema = new mongoose.Schema({
         appliedAt: {
             type: Date,
             default: Date.now
+        },
+        status: {
+            type: String,
+            enum: ['pending', 'accepted', 'rejected'],
+            default: 'pending'
         }
-    }]
-}, { timestamps: true });
+    }],
+    applicantCount: {
+        type: Number,
+        default: 0
+    }
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+});
+
+// Virtual for company details
+JobSchema.virtual('companyDetails', {
+    ref: 'User',
+    localField: 'companyId',
+    foreignField: '_id',
+    justOne: true
+});
 
 const Job = mongoose.model('Job', JobSchema);
 export default Job;
