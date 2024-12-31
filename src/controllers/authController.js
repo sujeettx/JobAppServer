@@ -75,6 +75,42 @@ export const getUserById = async (req, res) => {
   }
 };
 
+/// update user profile
+export const updateUserProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // First get the existing user
+    const existingUser = await User.findById(id);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Merge existing profile with new data
+    const updatedProfile = {
+      ...existingUser.profile,  // Keep all existing profile data
+      ...req.body.profile       // Add new profile fields
+    };
+
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { $set: { profile: updatedProfile } },
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Updated profile successfully"
+    });
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({ 
+      message: "Error updating user profile",
+      error: error.message 
+    });
+  }
+};
+
 // Register multiple users
 export const registerMultipleUsers = async (req, res) => {
   try {
