@@ -127,8 +127,9 @@ export const getJobById = async (req, res) => {
 export const getMyJobs = async (req, res) => {
     try {
         const jobs = await Job.find({ companyId: req.params.id })
-            .sort({ createdAt: -1 });
-        res.status(200).json({ success: true, data: jobs });
+            .sort({ createdAt: -1 })
+            .populate('applicants','studentId')
+        res.status(200).json(jobs);
     } catch (error) {
         handleError(res, error, 'Error fetching company jobs');
     }
@@ -138,15 +139,16 @@ export const getMyJobs = async (req, res) => {
 export const getApplicants = async (req, res) => {
     try {
         const jobs = await Job.find({ companyId: req.user.userId })
-            .populate('applicants.studentId', 'profile.name profile.email profile.education profile.skills')
+            .populate('applicants.studentId', 'profile.fullName profile.resume profile.portfolio')
             .select('title applicants');
 
         const applicants = jobs.map(job => ({
             jobTitle: job.title,
             applicants: job.applicants.map(a => ({
-                student: a.studentId,
+                student: a.prfile.fullName,
                 appliedAt: a.appliedAt,
-                status: a.status
+                resume: a.prfile.resume,
+                portfolio: a.prfile.portfolio,
             }))
         }));
 
@@ -180,7 +182,6 @@ export const applyForJob = async (req, res) => {
         job.applicants.push({
             studentId: req.user.userId,
             appliedAt: new Date(),
-            status: 'pending'
         });
 
         await job.save();
