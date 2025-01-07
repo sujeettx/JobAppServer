@@ -138,25 +138,34 @@ export const getMyJobs = async (req, res) => {
 // Get applicants for company's jobs
 export const getApplicants = async (req, res) => {
     try {
-        const jobs = await Job.find({ companyId: req.user.userId })
-            .populate('applicants.studentId', 'profile.fullName profile.resume profile.portfolio')
+        const { companyId } = req.params; // Assuming the companyId is passed as a URL parameter
+
+        const jobs = await Job.find({ companyId })
+            .populate('applicants.studentId',
+             'profile.fullName profile.resumeLink profile.portfolio profile.phoneNumber profile.skills profile.location profile.education')
             .select('title applicants');
 
         const applicants = jobs.map(job => ({
             jobTitle: job.title,
             applicants: job.applicants.map(a => ({
-                student: a.prfile.fullName,
+                student: a.studentId.profile.fullName, // Correct field path
                 appliedAt: a.appliedAt,
-                resume: a.prfile.resume,
-                portfolio: a.prfile.portfolio,
+                resume: a.studentId.profile.resumeLink,
+                portfolio: a.studentId.profile.portfolio,
+                phoneNumber: a.studentId.profile.phoneNumber, // Correct field path
+                skills: a.studentId.profile.skills ,// Correct field path,
+                location: a.studentId.profile.location ,// Correct field path,
+                education: a.studentId.profile.education // Correct field path,
+            
             }))
         }));
 
-        res.status(200).json({ success: true, data: applicants });
+        res.status(200).json(applicants);
     } catch (error) {
         handleError(res, error, 'Error fetching applicants');
     }
 };
+
 
 // Apply for job (students)
 export const applyForJob = async (req, res) => {

@@ -26,8 +26,8 @@ router.post('/', authorize(['company']), createJob);                            
 // Multiple job creation
 router.post('/multiple', authorize(['company']), createMultipleJobs);            // tested
 router.get('/my/:id',getMyJobs);                                                 // tested    later on for again testing      
-router.get('/applicants', authorize(['company']), getApplicants);                // later test
-router.put('/:id', authorize(['company']), updateJob);                           // tested
+router.get('/applicants/:companyId', authorize(['company']), getApplicants);                // later test
+router.patch('/:id', authorize(['company']), updateJob);                           // tested
 router.delete('/:id', authorize(['company']), deleteJob);                        // test
 
 // Error handler for invalid routes
