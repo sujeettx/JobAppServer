@@ -3,20 +3,20 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import authRoute from './routes/authRoute.js';
 import jobRoute from './routes/jobRoute.js';
-import {connectDB} from './config/db.js'
+import {connectDb} from './config/db.js'
 
 dotenv.config();
 
 const app = express();
 
 // Connect to database
-connectDB();
+connectDb();
 
 // Middleware
 app.use(express.json());
 
 // Enable CORS
-app.use(cors());
+app.use(cors("https://localhost:3000/"));
 
 // Routes
 app.use('/users', authRoute);

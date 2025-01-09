@@ -8,20 +8,29 @@ export const register = async (req, res) => {
   try {
     const { email, password, role, profile } = req.body;
 
+    // Basic validation
+    if (!email || !password || !role || !profile || !['company', 'student'].includes(role)) {
+      return res.status(400).json({ 
+        message: "Invalid input - check all required fields and role type" 
+      });
+    }
+
+    // Check existing user
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = new User({ email, password, role, profile });
-    await user.save();
+    // Create & save user
+    const user = await (new User({ email, password, role, profile })).save();
+    
+    return res.status(201).json({ message: "User registered successfully" });
 
-    res.status(201).json({ message: "User registered successfully" });
   } catch (error) {
-    res.status(500).json({ message: "Error registering user", error });
+    console.error('Registration error:', error);
+    return res.status(500).json({ message: error.message });
   }
 };
-
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
