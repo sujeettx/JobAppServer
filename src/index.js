@@ -16,7 +16,11 @@ connectDb();
 app.use(express.json());
 
 // Enable CORS
-app.use(cors("https://job-box-tau.vercel.app/"));
+app.use(cors({
+    origin: "https://job-box-tau.vercel.app"
+    }
+
+));
 
 // Routes
 app.use('/users', authRoute);
