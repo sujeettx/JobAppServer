@@ -16,7 +16,7 @@ connectDb();
 app.use(express.json());
 
 // Enable CORS
-app.use(cors("https://localhost:3000/"));
+app.use(cors("localhost:3000"));
 
 // Routes
 app.use('/users', authRoute);

@@ -5,10 +5,11 @@ dotenv.config({ path: './.env' });
 const uri = process.env.MONGODB_URI;
 
 export const connectDb = async () => {
-    try {
-      const connect = await mongoose.connect(uri);
-      console.log("Server is Connected to Database");
-    } catch (err) {
-      console.log("Server is NOT connected to Database", err.message);
-    }
-  };
+  try {
+    const conn = await mongoose.connect(uri);
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error(error.message);
+    process.exit(1);
+  }
+}
