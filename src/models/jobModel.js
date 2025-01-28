@@ -74,14 +74,10 @@ const JobSchema = new mongoose.Schema({
         },
         status: {
             type: String,
-            enum: ['pending', 'accepted', 'rejected'],
+            enum: ['pending', 'accepted', 'rejected','hired'],
             default: 'pending'
         }
-    }],
-    applicantCount: {
-        type: Number,
-        default: 0
-    }
+    }]
 }, {
     timestamps: true,
     toJSON: { virtuals: true },

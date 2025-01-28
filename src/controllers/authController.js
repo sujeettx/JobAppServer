@@ -142,3 +142,18 @@ export const registerMultipleUsers = async (req, res) => {
     res.status(500).json({ message: "Error registering multiple users", error });
   }
 };
+
+// get all company users
+
+export const getAllcompany = async (req, res) => {
+  try {
+    const users = await User.find({role : "company" });
+    if (!users) {
+      return res.status(404).json({ message: "No users found" });
+    }
+    res.status(200).json(users);
+  } catch (error) {
+    console.error('Error getting users:', error);
+    res.status(500).json({ message: "Error getting users", error });
+  }
+};
