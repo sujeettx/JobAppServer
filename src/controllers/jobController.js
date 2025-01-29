@@ -179,8 +179,10 @@ export const getApplicants = async (req, res) => {
       .select("title applicants");
 
     const applicants = jobs.map((job) => ({
+      jobid: job.id,
       jobTitle: job.title,
       applicants: job.applicants.map((a) => ({
+        studentid: a.id,
         student: a.studentId.profile.fullName,
         appliedAt: a.appliedAt,
         resume: a.studentId.profile.resumeLink,
@@ -273,15 +275,22 @@ export const deleteJob = async (req, res) => {
   }
 };
 
-// change the  status of the job application
-
 export const changeStatus = async (req, res) => {
   try {
     const { status } = req.body;
+    const { id, applicationId } = req.params;
+
+    if (!applicationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Application ID is required",
+      });
+    }
+
     const job = await Job.findOneAndUpdate(
       {
-        _id: req.params.id,
-        "applicants._id": req.params.applicationId,
+        _id: id,
+        "applicants._id": applicationId,
         companyId: req.user.userId,
       },
       { $set: { "applicants.$.status": status } },
@@ -289,15 +298,16 @@ export const changeStatus = async (req, res) => {
     );
 
     if (!job) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Job or application not found or unauthorized",
-        });
+      return res.status(404).json({
+        success: false,
+        message: "Job or application not found or unauthorized",
+      });
     }
 
-    res.status(200).json({ success: true, data: job });
+    res.status(200).json({ 
+      success: true,
+      message: "Job application status updated successfully"
+    });
   } catch (error) {
     handleError(res, error, "Error changing job application status");
   }

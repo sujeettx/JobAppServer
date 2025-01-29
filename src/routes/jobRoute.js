@@ -9,7 +9,8 @@ import {
     updateJob,
     deleteJob,
     getJobById,
-    createMultipleJobs
+    createMultipleJobs,
+    changeStatus
 } from '../controllers/jobController.js';
 
 const router = express.Router();
@@ -29,10 +30,9 @@ router.get('/my/:id',getMyJobs);                                                
 router.get('/applicants/:companyId', authorize(['company']), getApplicants);                // later test
 router.patch('/:id', authorize(['company']), updateJob);                           // tested
 router.delete('/:id', authorize(['company']), deleteJob);                        // test
-
+router.put("/:id/status/:applicationId", authorize(['company']),changeStatus);
 // Error handler for invalid routes
 router.use('*', (req, res) => {
     res.status(404).json({ message: 'Job route not found please again check the route url' });
 });
-
 export default router;
