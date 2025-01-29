@@ -17,9 +17,9 @@ app.use(express.json());
 
 // Enable CORS
 app.use(cors({
-    origin: "https://job-box-tau.vercel.app" || "http://localhost:3000"
-    }
-));
+    origin: ["https://job-box-tau.vercel.app", "http://localhost:3000"]
+}));
+
 // Routes
 app.use('/users', authRoute);
 app.use('/jobs', jobRoute);
