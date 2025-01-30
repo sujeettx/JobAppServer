@@ -17,7 +17,7 @@ app.use(express.json());
 
 // Enable CORS
 app.use(cors({
-    origin: ["https://jobbox-livid.vercel.app/", "http://localhost:3000"]
+    origin: ["https://jobbox-livid.vercel.app", "http://localhost:3000"]
 }));
 
 // Routes
