@@ -48,8 +48,13 @@ export const login = async (req, res) => {
     const token = jwt.sign({ userId: user._id, role: user.role }, JWT_SECRET, {
       expiresIn: "4d",
     });
-
-    res.status(200).json({ token, role: user.role, userId: user._id });
+    res.cookie("token", token, {
+      httpOnly: true,
+      // secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 2 * 24 * 60 * 60 * 1000,
+    });
+    res.json({ message: "Login successful" });
   } catch (error) {
     res.status(500).json({ message: "Error logging in", error });
   }

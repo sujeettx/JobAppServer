@@ -7,17 +7,13 @@ const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined in environment variables');
 }
-
 export const authenticate = (req, res, next) => {
     try {
-        const token = req.headers.authorization; // Assume token is sent directly in the header
-        
+        const token = req.headers.authorization || req.cookies.token; // Assume token is sent directly in the header
         if (!token) {
             return res.status(401).json({ message: 'Access denied, no token provided' });
         }
-
         try {
-          
             const decoded = jwt.verify(token, JWT_SECRET);
             req.user = decoded;
             next();

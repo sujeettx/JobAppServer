@@ -128,7 +128,10 @@ export const getAllJobs = async (req, res) => {
       .select("-applicants")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(jobs);
+    res.status(200).json({
+      totalJobs:jobs.length,
+      jobs:jobs
+    });
   } catch (error) {
     handleError(res, error, "Error fetching jobs");
   }
